@@ -9,19 +9,12 @@ namespace WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProductWithUOWController : ControllerBase
+    public class ProductWithUOWController(IUnitOfWork unitOfWork) : ControllerBase
     {
-        private readonly IUnitOfWork _unitOfWork;
-
-        public ProductWithUOWController(IUnitOfWork unitOfWork)
-        {
-            _unitOfWork = unitOfWork;
-        }
-
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var restul = await _unitOfWork.GetRepository<Product>().GetAllAsync();
+            var restul = await unitOfWork.GetRepository<Product>().GetAllAsync();
 
             return Ok(restul);
 
@@ -30,7 +23,7 @@ namespace WebAPI.Controllers
         [HttpGet("productbyname")]
         public async Task<IActionResult> GetByName(string proudctName)
         {
-            var product = await _unitOfWork.ProductRepository.GetProductsByName(proudctName);
+            var product = await unitOfWork.ProductRepository.GetProductsByName(proudctName);
 
             return Ok(product);
         }
@@ -40,7 +33,7 @@ namespace WebAPI.Controllers
         {
             try
             {
-                using var transaction = _unitOfWork.BeginTransactionAsync();
+                using var transaction = unitOfWork.BeginTransactionAsync();
 
                 var productEnitity = new Product
                 {
@@ -48,9 +41,9 @@ namespace WebAPI.Controllers
                     ProductName = product.ProductName
                 };
 
-                var productrestul = await _unitOfWork.GetRepository<Product>().AddAsync(productEnitity);
+                var productrestul = await unitOfWork.GetRepository<Product>().AddAsync(productEnitity);
 
-                await _unitOfWork.SaveChangesAsync();
+                await unitOfWork.SaveChangesAsync();
 
                 var orderEntity = new Order
                 {
@@ -58,18 +51,18 @@ namespace WebAPI.Controllers
                     ProductId = productrestul.ProductId
                 };
 
-                await _unitOfWork.GetRepository<Order>().AddAsync(orderEntity);
-                await _unitOfWork.SaveChangesAsync();
+                await unitOfWork.GetRepository<Order>().AddAsync(orderEntity);
+                await unitOfWork.SaveChangesAsync();
 
-                await _unitOfWork.CommitAsync();
+                await unitOfWork.CommitAsync();
 
                 return StatusCode((int)HttpStatusCode.Created, new { Id = productrestul.ProductId });
             }
             catch (Exception)
             {
-                await _unitOfWork.RollbackAsync();
+                await unitOfWork.RollbackAsync();
                 throw;
             }
-        }
+        d}
     }
 }
