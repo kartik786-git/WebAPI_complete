@@ -7,14 +7,16 @@ namespace WebAPI.Repository
     public class UnitOfWork : IUnitOfWork
     {
         private readonly MyDbContext _myDbContext;
+        private readonly IServiceProvider _serviceProvider;
         private readonly Dictionary<Type, object> _repositories;
 
         public IProductRepository ProductRepository { get; }
 
         private IDbContextTransaction _transaction;
-        public UnitOfWork(MyDbContext myDbContext) 
+        public UnitOfWork(MyDbContext myDbContext , IServiceProvider serviceProvider) 
         {
             _myDbContext = myDbContext;
+            _serviceProvider = serviceProvider;
             _repositories = new Dictionary<Type, object>();
             ProductRepository = new ProductRepository(_myDbContext);
         }
@@ -83,6 +85,28 @@ namespace WebAPI.Repository
         public async Task<int> SaveChangesAsync()
         {
             return await _myDbContext.SaveChangesAsync();
+        }
+
+        TRepository IUnitOfWork.GetRepository<TRepository, TEntity>()
+        {
+            var repository = _serviceProvider.GetService<TRepository>();
+
+            if (repository == null)
+            {
+                throw new InvalidOperationException($"Failed to get repository of type {typeof(TRepository)}");
+            }
+
+            // Set the DbContext
+            if (repository is IRepository<TEntity> genericRepository)
+            {
+                genericRepository.SetDbContext(_myDbContext);
+            }
+            else
+            {
+                throw new InvalidOperationException($"Repository of type {typeof(TRepository)} does not implement IRepository<TEntity>.");
+            }
+
+            return repository;
         }
     }
 }

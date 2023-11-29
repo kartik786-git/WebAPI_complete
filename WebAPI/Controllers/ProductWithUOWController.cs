@@ -14,7 +14,8 @@ namespace WebAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var restul = await unitOfWork.GetRepository<Product>().GetAllAsync();
+            var productRepository = unitOfWork.GetRepository<IProductRepository, Product>();
+            var restul = await productRepository.GetAllAsync();
 
             return Ok(restul);
 
@@ -23,9 +24,11 @@ namespace WebAPI.Controllers
         [HttpGet("productbyname")]
         public async Task<IActionResult> GetByName(string proudctName)
         {
-            var product = await unitOfWork.ProductRepository.GetProductsByName(proudctName);
+            var productRepository = unitOfWork.GetRepository<IProductRepository, Product>();
+           var result = await productRepository.GetProductsByName(proudctName);
+            //var product = await unitOfWork.ProductRepository.GetProductsByName(proudctName);
 
-            return Ok(product);
+            return Ok(result);
         }
 
         [HttpPost]
@@ -40,8 +43,8 @@ namespace WebAPI.Controllers
                     Price = product.Price,
                     ProductName = product.ProductName
                 };
-
-                var productrestul = await unitOfWork.GetRepository<Product>().AddAsync(productEnitity);
+                var productRepository = unitOfWork.GetRepository<IProductRepository, Product>();
+                var productrestul = await productRepository.AddAsync(productEnitity);
 
                 await unitOfWork.SaveChangesAsync();
 
@@ -63,6 +66,6 @@ namespace WebAPI.Controllers
                 await unitOfWork.RollbackAsync();
                 throw;
             }
-        d}
+        }
     }
 }

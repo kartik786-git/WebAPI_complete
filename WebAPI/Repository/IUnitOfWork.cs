@@ -8,5 +8,8 @@
         Task CommitAsync();
         Task RollbackAsync();
         public IProductRepository ProductRepository { get; }
-      }
+
+        TRepository GetRepository<TRepository, TEntity>() where TRepository : class,
+           IRepository<TEntity> where TEntity : class;
+    }
 }
