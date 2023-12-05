@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using WebAPI.Entity;
 using WebAPI.Repository;
@@ -11,16 +12,27 @@ namespace WebAPI.Controllers
     public class ProductWithGenericRepoController : ControllerBase
     {
         private readonly IRepository<Product> _productRespository;
+        private readonly IMapper _mapper;
 
-        public ProductWithGenericRepoController(IRepository<Product> productRespository)
+        public ProductWithGenericRepoController(
+            IRepository<Product> productRespository, IMapper mapper)
         {
             _productRespository = productRespository;
+            _mapper = mapper;
         }
 
         [HttpGet]
         public async Task<IActionResult> Get()
         {
             var products = await _productRespository.GetAllAsync();
+            return Ok(products);
+        }
+
+        [HttpGet("ProuctsWithPagging")]
+        public async Task<IActionResult> GetProuctsWithPagging(int page = 1, int pageSize = 10, string searchTerm = null)
+        {
+            var products = await _productRespository.GetAllAsync();
+            var prudctdto = _mapper.Map<List<ProductRequest>>(products);
             return Ok(products);
         }
 
@@ -32,19 +44,16 @@ namespace WebAPI.Controllers
             {
                 return NotFound();
             }
-            return Ok(product);
+           var prudctdto = _mapper.Map<ProductRequest>(product);
+            return Ok(prudctdto);
         }
 
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] ProductRequest product)
         {
-            var productEnity = new Product()
-            {
-                ProductName = product.ProductName,
-                Price = product.Price,
 
-            };
-            var createdProductReponse = await _productRespository.AddAsync(productEnity);
+          var productentity =  _mapper.Map<Product>(product);
+            var createdProductReponse = await _productRespository.AddAsync(productentity);
             return CreatedAtAction(nameof(GetById), new { id = createdProductReponse.ProductId }, createdProductReponse);
         }
 
@@ -56,8 +65,10 @@ namespace WebAPI.Controllers
             {
                 return NotFound();
             }
-            productEntity.ProductName = product.ProductName;
-            productEntity.Price = product.Price;
+            //productEntity.ProductName = product.ProductName;
+            //productEntity.Price = product.Price;
+            //_mapper.Map<Product>(product);
+            _mapper.Map(product, productEntity);
             await _productRespository.UpdateAsync(productEntity);
             return NoContent();
 

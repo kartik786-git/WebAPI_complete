@@ -1,9 +1,11 @@
+using AutoMapper;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using WebAPI.CustomHealthCheck;
 using WebAPI.Data;
+using WebAPI.MapperProfile;
 using WebAPI.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +15,13 @@ builder.Services.AddDbContext<MyDbContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("ProductBbContext"))
 );
 
+var mapperConfiguration = new MapperConfiguration(cgf =>
+{
+    cgf.AddProfile(typeof(YourMappingProfile));
+});
+
+var mapper = mapperConfiguration.CreateMapper();
+builder.Services.AddSingleton(mapper);
 
 builder.Services.AddHealthChecks()
     .AddCheck<ApiHealthCheck>(nameof(ApiHealthCheck))
@@ -23,7 +32,9 @@ builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddTransient<IProductRepository, ProductRepository>();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().
+    AddNewtonsoftJson(options =>
+    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

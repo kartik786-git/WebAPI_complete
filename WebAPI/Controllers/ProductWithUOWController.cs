@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using WebAPI.Entity;
@@ -18,6 +19,25 @@ namespace WebAPI.Controllers
             var restul = await productRepository.GetAllAsync();
 
             return Ok(restul);
+
+        }
+
+        [HttpGet("ProductPagging")]
+        public async Task<IActionResult> GetProductPagging(int page = 1, int pageSize = 10, string searchTerm = null)
+        {
+            var productRepository = unitOfWork.GetRepository<IProductRepository, Product>();
+            var results = await productRepository.GetAllProuctsWithPagging(page, pageSize, searchTerm);
+            var metadata = new
+            {
+                results.TotalCount,
+                results.PageSize,
+                results.CurrentPage,
+                results.TotalPages,
+                results.HasNext,
+                results.HasPrevious,
+                results
+            };
+            return Ok(metadata);
 
         }
 
