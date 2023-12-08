@@ -31,5 +31,9 @@ namespace WebAPI.Repository
            return await _dbSet.Where(p => p.ProductName.Contains(productName)).ToListAsync();
         }
 
+        public async Task<Product> GetProuductsByProductId(int productId)
+        {
+            return await _dbSet.Include(p => p.Orders).Where(x => x.ProductId == productId).FirstOrDefaultAsync();
+        }
     }
 }

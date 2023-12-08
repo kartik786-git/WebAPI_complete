@@ -11,6 +11,7 @@ namespace WebAPI.MapperProfile
         {
             //CreateMap<enity, Dto>();
             CreateMap<Product, ProductRequest>().ReverseMap();
+            CreateMap<Order, OrderRequest>().ReverseMap();
         }
     }
 }

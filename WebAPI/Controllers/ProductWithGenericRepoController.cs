@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using WebAPI.Entity;
 using WebAPI.Repository;
@@ -13,12 +14,15 @@ namespace WebAPI.Controllers
     {
         private readonly IRepository<Product> _productRespository;
         private readonly IMapper _mapper;
+        private readonly IProductRepository _product;
 
         public ProductWithGenericRepoController(
-            IRepository<Product> productRespository, IMapper mapper)
+            IRepository<Product> productRespository, IMapper mapper, 
+            IProductRepository product)
         {
             _productRespository = productRespository;
             _mapper = mapper;
+            _product = product;
         }
 
         [HttpGet]
@@ -44,7 +48,7 @@ namespace WebAPI.Controllers
             {
                 return NotFound();
             }
-           var prudctdto = _mapper.Map<ProductRequest>(product);
+            var prudctdto = _mapper.Map<ProductRequest>(product);
             return Ok(prudctdto);
         }
 
@@ -52,7 +56,7 @@ namespace WebAPI.Controllers
         public async Task<IActionResult> Post([FromBody] ProductRequest product)
         {
 
-          var productentity =  _mapper.Map<Product>(product);
+            var productentity = _mapper.Map<Product>(product);
             var createdProductReponse = await _productRespository.AddAsync(productentity);
             return CreatedAtAction(nameof(GetById), new { id = createdProductReponse.ProductId }, createdProductReponse);
         }
@@ -84,6 +88,29 @@ namespace WebAPI.Controllers
             }
 
             await _productRespository.DeleteAsync(product);
+            return NoContent();
+        }
+
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> Patch(int id, 
+            [FromBody] JsonPatchDocument<ProductRequest> patchProduct)
+        {
+            var productEntity = await _product.GetProuductsByProductId(id);
+            if (productEntity == null)
+            {
+                return NotFound();
+            }
+           // productEntity.ProductName = "exitina name"
+            var productRequest = _mapper.Map<ProductRequest>(productEntity);
+
+            //ProductName = "change name"
+            patchProduct.ApplyTo(productRequest, ModelState);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            _mapper.Map(productRequest, productEntity);
+            await _product.UpdateAsync(productEntity);
             return NoContent();
         }
     }
