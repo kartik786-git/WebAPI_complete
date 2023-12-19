@@ -15,6 +15,14 @@ builder.Services.AddDbContext<MyDbContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("ProductBbContext"))
 );
 
+builder.Services.AddDbContext<BlogDbContext>(options =>
+options.UseSqlServer(builder.Configuration.GetConnectionString("BlogBbContext"))
+);
+
+builder.Services.AddDbContext<PostDBContext>(options =>
+options.UseSqlServer(builder.Configuration.GetConnectionString("PostBbContext"))
+);
+
 var mapperConfiguration = new MapperConfiguration(cgf =>
 {
     cgf.AddProfile(typeof(YourMappingProfile));
@@ -31,6 +39,8 @@ builder.Services.AddHealthChecks()
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddTransient<IProductRepository, ProductRepository>();
+builder.Services.AddTransient<IBlogRepository, BlogRepository>();
+builder.Services.AddTransient<IPostRepository, PostRepository>();
 
 builder.Services.AddControllers().
     AddNewtonsoftJson(options =>

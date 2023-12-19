@@ -1,4 +1,5 @@
-﻿using WebAPI.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using WebAPI.Data;
 
 namespace WebAPI.Repository
 {
@@ -10,6 +11,7 @@ namespace WebAPI.Repository
         Task UpdateAsync(T entity);
         Task DeleteAsync(T entity);
 
-        void SetDbContext(MyDbContext dbContext);
+        void SetDbContext(DbContext dbContext);
+        Task AddRangeAsync(IEnumerable<T> entities);
     }
 }

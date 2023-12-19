@@ -7,24 +7,28 @@ namespace WebAPI.Repository
     public class Repository<T> : IRepository<T> where T : class
     {
         protected readonly DbSet<T> _dbSet;
-        private  MyDbContext _myDbContext;
+        private  DbContext _dbContext;
 
-        public Repository(MyDbContext myDbContext)
+        public Repository(DbContext dbContext)
         {
-            _dbSet = myDbContext.Set<T>();
-            _myDbContext = myDbContext;
+            _dbSet = dbContext.Set<T>();
+            _dbContext = dbContext;
         }
         public async Task<T> AddAsync(T entity)
         {
             await _dbSet.AddAsync(entity);
-            await _myDbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync();
             return entity;
+        }
+        public async Task AddRangeAsync(IEnumerable<T> entities)
+        {
+            await _dbSet.AddRangeAsync(entities);
         }
 
         public async Task DeleteAsync(T entity)
         {
             _dbSet.Remove(entity);
-            await _myDbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync();
         }
 
         public async Task<IEnumerable<T>> GetAllAsync()
@@ -37,16 +41,16 @@ namespace WebAPI.Repository
             return await _dbSet.FindAsync(id);
         }
 
-        public void SetDbContext(MyDbContext dbContext)
+        public void SetDbContext(DbContext dbContext)
         {
-            _myDbContext = dbContext;
+            _dbContext = dbContext;
         }
 
         public async Task UpdateAsync(T entity)
         {
             _dbSet.Attach(entity);
-            _myDbContext.Entry(entity).State = EntityState.Modified;
-            await _myDbContext.SaveChangesAsync();
+            _dbContext.Entry(entity).State = EntityState.Modified;
+            await _dbContext.SaveChangesAsync();
         }
     }
 }

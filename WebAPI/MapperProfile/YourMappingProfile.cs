@@ -12,6 +12,10 @@ namespace WebAPI.MapperProfile
             //CreateMap<enity, Dto>();
             CreateMap<Product, ProductRequest>().ReverseMap();
             CreateMap<Order, OrderRequest>().ReverseMap();
+
+            CreateMap<Blog,BlogPostReqeust>().ReverseMap();
+            CreateMap<Post, PostRequest>().ReverseMap();
+            CreateMap<Post,PostResponse>().ReverseMap();
         }
     }
 }

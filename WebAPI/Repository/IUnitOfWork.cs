@@ -11,5 +11,7 @@
 
         TRepository GetRepository<TRepository, TEntity>() where TRepository : class,
            IRepository<TEntity> where TEntity : class;
+        TRepository GetRepository<TRepository, TEntity>(string dbType) where TRepository : class,
+           IRepository<TEntity> where TEntity : class;
     }
 }
