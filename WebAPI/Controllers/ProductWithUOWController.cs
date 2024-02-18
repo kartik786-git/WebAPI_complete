@@ -81,7 +81,7 @@ namespace WebAPI.Controllers
 
                 return StatusCode((int)HttpStatusCode.Created, new { Id = productrestul.ProductId });
             }
-            catch (Exception)
+            catch (System.Exception)
             {
                 await unitOfWork.RollbackAsync();
                 throw;

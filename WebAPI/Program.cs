@@ -1,14 +1,28 @@
 using AutoMapper;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.FileProviders;
 using WebAPI.CustomHealthCheck;
 using WebAPI.Data;
+using WebAPI.Exception;
 using WebAPI.MapperProfile;
 using WebAPI.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.Configure<FormOptions>(o =>
+{
+    o.ValueLengthLimit = int.MaxValue;
+    o.MultipartBodyLengthLimit = int.MaxValue;
+    o.MemoryBufferThreshold = int.MaxValue;
+});
+builder.Services.AddExceptionHandler<GlobleExceptionHndler>();
+//builder.Services.AddExceptionHandler<TimeOUtException>();
+//builder.Services.AddExceptionHandler<DefaultException>();
+
 
 builder.Services.AddHttpClient();
 builder.Services.AddDbContext<MyDbContext>(options =>
@@ -58,6 +72,7 @@ builder.Services
 
 var app = builder.Build();
 
+app.UseExceptionHandler(opt => { });
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -80,6 +95,12 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions()
+{
+    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), @"Resources")),
+    RequestPath = new PathString("/Resources")
+});
 
 app.MapHealthChecks("/healthcheck", new()
 {

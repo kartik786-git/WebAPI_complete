@@ -82,7 +82,7 @@ namespace WebAPI.Controllers
                 await _unitOfWork.CommitAsync();
                 return StatusCode(201);
             }
-            catch (Exception ex)
+            catch (System.Exception ex)
             {
                 await _unitOfWork.RollbackAsync();
                return StatusCode(500,new {errro = ex.Message});
